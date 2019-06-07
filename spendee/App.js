@@ -1,19 +1,42 @@
 import React from 'react';
 import styled from 'styled-components';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View ,FlatList} from 'react-native';
 import { Container, Header, Left, Body, Right, Title, Subtitle, Fab } from 'native-base';
 import DateTimePicker from "react-native-modal-datetime-picker";
 import moment from 'moment';
 import Modal from './components/modal'
-
+import API from './api/api'
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       isDateTimePickerVisible: false,
-      chosenDate: new Date()
+      chosenDate: new Date(),
+      isModalVisible:false,
+      data:[]
     };
+  }
+  
+  componentDidMount() {
+    const _this = this
+    API.get('/items')
+    .then(function (response) {
+      // handle success
+      console.log(response.data);
+      _this.setState({data:response.data})
+    })
+    .catch(function (error) {
+      // handle error
+      console.log(error);
+    })
+    .finally(function () {
+      // always executed
+    });
+  }
+
+  handleModal = () => {
+    this.setState({ isModalVisible: !this.state.isModalVisible});
   }
 
   showDateTimePicker = () => {
@@ -53,15 +76,19 @@ export default class App extends React.Component {
           </TextAlign>
         </View>
         <View>
-         
+        <FlatList
+    keyExtractor={(item, index) => index.toString()}
+    data={this.state.data}
+  renderItem={({item}) => <Text>{item.title}</Text>}
+/>
         </View>
         <Fab
             style={{ backgroundColor: '#5067FF' }}
             position="bottomRight"
-            onPress={() => this.setState({ active: !this.state.active })}>
+            onPress={this.handleModal}>
             <Text>+</Text>
           </Fab>
-          <Modal/>
+          <Modal isModalVisible={this.state.isModalVisible} handleModal={this.handleModal}/>
       </Container>
       // <Body>
       //   <TopBody>

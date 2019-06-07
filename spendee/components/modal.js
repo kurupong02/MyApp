@@ -1,19 +1,19 @@
 import React from 'react';
 import styled from 'styled-components';
 import { StyleSheet, Text, View } from 'react-native';
-import { Body, Card, CardItem, Button, Picker, Form } from 'native-base';
+import { Body, Card, CardItem, Button, Picker, Form, Item, Input, Label } from 'native-base';
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { Dropdown } from 'react-native-material-dropdown';
 import moment from 'moment';
 import Modal from "react-native-modal";
+import API from '../api/api';
 
 let data = [{
-  value: 'Banana',
+  value: 'รายรับ',
 }, {
-  value: 'Mango',
-}, {
-  value: 'Pear',
-}];
+  value: 'รายจ่าย',
+}
+];
 
 export default class App extends React.Component {
   constructor(props) {
@@ -21,12 +21,29 @@ export default class App extends React.Component {
     this.state = {
       isDateTimePickerVisible: false,
       chosenDate: new Date(),
-      selected: "key1"
+      selected: "รายรับ",
+      titleName: "",
+      price: ""
     };
   }
 
 
+  addData =() =>{
+    const { chosenDate, selected, titleName , price } = this.state
+    console.log(chosenDate, selected, titleName , price)
+    API.post('/items', {
+      title: selected,
+      des: titleName,
+      value: price,
+      date: chosenDate
+    })
+    .then(function (response) {
 
+    })
+    .catch(function (error) {
+      
+    });
+  }
   onValueChange(value) {
     this.setState({
       selected: value
@@ -47,6 +64,8 @@ export default class App extends React.Component {
     this.hideDateTimePicker();
   };
 
+  
+
   render() {
     return (
       <View>
@@ -57,7 +76,7 @@ export default class App extends React.Component {
         />
 
         <Button title="Show modal" onPress={this.toggleModal} />
-        <Modal isVisible={true}>
+        <Modal isVisible={this.props.isModalVisible} onBackdropPress={this.props.handleModal}>
           <Card>
             <CardItem header bordered>
               <Text>Add List</Text>
@@ -65,15 +84,26 @@ export default class App extends React.Component {
             <CardItem bordered>
               <Body>
                 <Text onPress={this.showDateTimePicker}>{moment(this.state.chosenDate).format("MMM Do YY")}</Text>
-                <Dropdown
-                  label='Favorite Fruit'
-                  data={data}
-                />
+                <View style={{ width: 100 }}>
+                  <Dropdown
+                    data={data}
+                    value = {this.state.selected}
+                    
+                  />
+                </View>
+                <Item stackedLabel>
+                  <Label>Username</Label>
+                  <Input onChangeText={(titleName) => this.setState({ titleName })}  placeholder='รายละเอียด'/>
+                </Item>
+                <Item stackedLabel>
+                  <Label>Price</Label>
+                  <Input onChangeText={(price) => this.setState({ price })}  placeholder='รายละเอียด'/>
+                </Item>
               </Body>
             </CardItem>
             <CardItem footer bordered>
               <TextAlign>
-                <Button success><Text> Add </Text></Button>
+                <Button success onPress={this.addData}><Text> Add </Text></Button>
                 <Button danger><Text> Cancel </Text></Button>
               </TextAlign>
             </CardItem>
@@ -108,8 +138,9 @@ const TopBody = styled.View`
 
 `;
 const TextAlign = styled.View`
-  justify-content : space-around;
-  flexDirection: row
+  justify-content : space-between;
+  flexDirection: row;
+  flex:1;
 `;
 const styles = StyleSheet.create({
 
